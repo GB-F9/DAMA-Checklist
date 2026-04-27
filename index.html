@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>DAMA/ACILA PR Pathway — Aged Care Worker Checklist</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f8;
+    color: #1a2733;
+    line-height: 1.45;
+    padding-bottom: 80px;
+  }
+  header {
+    background: linear-gradient(135deg, #0e3a5c 0%, #1a5c8a 100%);
+    color: #fff;
+    padding: 18px 16px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+  header .sub {
+    font-size: 12px;
+    opacity: 0.85;
+  }
+  .progress-bar {
+    background: rgba(255,255,255,0.2);
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: #4ade80;
+    height: 100%;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .progress-text {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .container { padding: 12px; max-width: 800px; margin: 0 auto; }
+  .phase {
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .phase-header {
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-left: 4px solid #1a5c8a;
+    user-select: none;
+  }
+  .phase-header:active { background: #f8fafc; }
+  .phase.complete .phase-header { border-left-color: #4ade80; }
+  .phase-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0e3a5c;
+    flex: 1;
+  }
+  .phase-meta {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .phase-stats {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  .phase.complete .phase-stats { background: #d1fae5; color: #065f46; }
+  .chevron {
+    color: #94a3b8;
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  .phase.expanded .chevron { transform: rotate(90deg); }
+  .phase-body {
+    display: none;
+    padding: 0;
+    border-top: 1px solid #e2e8f0;
+  }
+  .phase.expanded .phase-body { display: block; }
+  .section {
+    padding: 12px 16px 4px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .section:last-child { border-bottom: none; }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .item {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8fafc;
+    gap: 10px;
+  }
+  .item:last-child { border-bottom: none; }
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 2px solid #cbd5e1;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .checkbox.checked {
+    background: #4ade80;
+    border-color: #4ade80;
+  }
+  .checkbox.checked::after {
+    content: '';
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+    margin-top: -3px;
+  }
+  .item-content { flex: 1; }
+  .item-text {
+    font-size: 14px;
+    color: #1a2733;
+    cursor: pointer;
+  }
+  .item.done .item-text {
+    color: #94a3b8;
+    text-decoration: line-through;
+  }
+  .item-note {
+    margin-top: 6px;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: #475569;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 28px;
+    background: #f8fafc;
+    display: none;
+  }
+  .item.has-note .item-note { display: block; }
+  .item-note:focus {
+    outline: none;
+    border-color: #1a5c8a;
+    background: #fff;
+  }
+  .note-toggle {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 2px 0;
+    margin-top: 2px;
+    text-decoration: underline;
+  }
+  .note-toggle:active { color: #1a5c8a; }
+  .item-detail {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 9;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .btn:active { background: #f1f5f9; }
+  .btn-primary {
+    background: #1a5c8a;
+    color: #fff;
+    border-color: #1a5c8a;
+  }
+  .btn-primary:active { background: #0e3a5c; }
+  .info-banner {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #78350f;
+  }
+  .info-banner strong { color: #451a03; }
+  .budget-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .budget-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .budget-table td:last-child {
+    text-align: right;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+  }
+  .budget-total td {
+    font-weight: 600;
+    color: #0e3a5c;
+    border-top: 2px solid #cbd5e1;
+    border-bottom: none !important;
+    padding-top: 8px;
+  }
+  @media print {
+    header { position: static; }
+    .toolbar { display: none; }
+    .phase, .phase-body { display: block !important; }
+    .chevron { display: none; }
+    body { background: #fff; padding-bottom: 0; }
+    .phase { box-shadow: none; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+    .item-note { display: block !important; }
+    .note-toggle { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>DAMA / ACILA PR Pathway</h1>
+  <div class="sub">Aged Care Worker — Australia | For Richey</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-text">
+    <span id="progressLabel">0 of 0 complete</span>
+    <span id="progressPct">0%</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="info-banner">
+    <strong>About this checklist:</strong> Tap any item to mark it complete. Tap "Add note" to record details (dates, amounts paid, contact info). All progress saves automatically on this device.
+  </div>
+  <div id="checklist"></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn" onclick="expandAll()">Expand all</button>
+  <button class="btn" onclick="window.print()">Print</button>
+  <button class="btn" onclick="exportData()">Export</button>
+  <button class="btn btn-primary" onclick="resetAll()">Reset</button>
+</div>
+
+<script>
+  var STORAGE_KEY = 'damaPRChecklist-v1';
+
+  var data = [
+    {
+      id: 'p1',
+      title: 'Phase 1 — Foundation',
+      meta: 'Months 0–2 | Start now, before applying',
+      sections: [
+        {
+          title: 'English Language Testing (highest priority)',
+          items: [
+            { id: 'p1-en1', text: 'Take a free IELTS diagnostic test online (ielts.org)', detail: 'Identifies weakest band so prep is targeted' },
+            { id: 'p1-en2', text: 'Book IELTS General Training test 8–10 weeks out', detail: 'IDP Education Philippines or British Council Philippines | ~PHP 13,000' },
+            { id: 'p1-en3', text: 'Begin daily study routine (1–1.5 hrs)', detail: 'Cambridge IELTS books 17–18, E2 IELTS YouTube' },
+            { id: 'p1-en4', text: 'Complete 4 full timed mock tests' },
+            { id: 'p1-en5', text: 'Sit IELTS General Training test' },
+            { id: 'p1-en6', text: 'Achieve minimum 5.0 in each band', detail: 'Visa floor for ACILA caregiver roles. Target 6.0+ for stronger applications' }
+          ]
+        },
+        {
+          title: 'Document Gathering — Philippines',
+          items: [
+            { id: 'p1-d1', text: 'Request Certificate of Employment from Camarines Norte Provincial Hospital', detail: 'Free from Hospital HR/Personnel Office. Specify Australia visa purpose' },
+            { id: 'p1-d2', text: 'Request Service Record from Civil Service Commission (CSC)' },
+            { id: 'p1-d3', text: 'Get certified copies of PRC nursing license' },
+            { id: 'p1-d4', text: 'Get certified copies of TOR from Ago Medical Educational Center' },
+            { id: 'p1-d5', text: 'Get NBI Clearance (valid 1 year)' },
+            { id: 'p1-d6', text: 'Verify passport valid 18+ months from intended travel' },
+            { id: 'p1-d7', text: 'Take new professional passport-style photos' }
+          ]
+        },
+        {
+          title: 'Document Gathering — Qatar (start early, takes time)',
+          items: [
+            { id: 'p1-q1', text: 'Locate Al Emadi Hospital Certificate of Employment', detail: 'Email former HR; LinkedIn outreach to past colleagues if needed' },
+            { id: 'p1-q2', text: 'Locate Qatar Foundation for Elderly People Care COE', detail: 'CRITICAL — direct aged care evidence' },
+            { id: 'p1-q3', text: 'Get certified copies of Sterilization Technician Licence (Qatar #2667)' },
+            { id: 'p1-q4', text: 'Get certified copies of CRCST certificate (HSPA #118656)' },
+            { id: 'p1-q5', text: 'Get certified copies of IISMI honours diploma (Dec 2010)' },
+            { id: 'p1-q6', text: 'Get certified copies of all Qatar training certificates (BLS, etc.)' },
+            { id: 'p1-q7', text: 'Police clearance from Qatar', detail: 'Required for any country lived 12+ months. Apply via Qatar Embassy Manila' }
+          ]
+        },
+        {
+          title: 'Online Profile Setup',
+          items: [
+            { id: 'p1-p1', text: 'Complete Seek.com.au profile fully' },
+            { id: 'p1-p2', text: 'Set "Right to work" = "Requires sponsorship"', detail: 'Critical — sponsorship-offering employers filter on this' },
+            { id: 'p1-p3', text: 'Set Approachability = "Shown" + "Actively looking"' },
+            { id: 'p1-p4', text: 'Add classifications: Healthcare & Medical + Community Services & Development' },
+            { id: 'p1-p5', text: 'Complete LinkedIn profile mirroring Seek' },
+            { id: 'p1-p6', text: 'Upload professional headshot (both platforms)' },
+            { id: 'p1-p7', text: 'Set up application tracker spreadsheet (employer, role, date, status)' }
+          ]
+        },
+        {
+          title: 'Strategy & Research',
+          items: [
+            { id: 'p1-r1', text: 'Confirm target Australian regions', detail: 'NT (DAMA III strongest), regional WA, QLD, SA' },
+            { id: 'p1-r2', text: 'Research climate, cost of living, Filipino communities in target regions' },
+            { id: 'p1-r3', text: 'Bookmark immigration.gov.au DAMA and ACILA pages' },
+            { id: 'p1-r4', text: 'Join Filipino aged-care worker FB groups for Australia migration' },
+            { id: 'p1-r5', text: 'Save key contacts (Australian Embassy Manila, DMW, Community Work Australia)' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p2',
+      title: 'Phase 2 — Active Application',
+      meta: 'Months 1–6 | 5 tailored applications/week',
+      sections: [
+        {
+          title: 'Tier 1 — Major National ACILA-Approved Employers',
+          items: [
+            { id: 'p2-t1-1', text: 'Apply to Opal HealthCare', detail: '142 homes across NSW, VIC, QLD, WA, ACT' },
+            { id: 'p2-t1-2', text: 'Apply to Estia Health', detail: '80+ homes across NSW, VIC, QLD, SA' },
+            { id: 'p2-t1-3', text: 'Apply to Aegis Aged Care (WA)', detail: 'WA largest privately-owned, 4,500+ staff' },
+            { id: 'p2-t1-4', text: 'Apply to Bupa Aged Care', detail: '50+ homes, all states/territories' },
+            { id: 'p2-t1-5', text: 'Apply to Regis Healthcare' },
+            { id: 'p2-t1-6', text: 'Apply to Bolton Clarke', detail: 'Largest independent NFP, QLD/NSW/VIC/SA' }
+          ]
+        },
+        {
+          title: 'Tier 2 — Regional & State-Focused ACILA Providers',
+          items: [
+            { id: 'p2-t2-1', text: 'Apply to Curtin Heritage Living (WA)', detail: 'First aged-care provider with ACILA' },
+            { id: 'p2-t2-2', text: 'Apply to SwanCare (WA)' },
+            { id: 'p2-t2-3', text: 'Apply to Lutheran Services (QLD)', detail: '6,000+ people served' },
+            { id: 'p2-t2-4', text: 'Apply to BlueCare (QLD)', detail: 'UnitingCare aged-care arm' },
+            { id: 'p2-t2-5', text: 'Apply to Adelaide Quality Care (SA)' },
+            { id: 'p2-t2-6', text: 'Apply to Helping Hand SA' },
+            { id: 'p2-t2-7', text: 'Apply to Calvary (national)' },
+            { id: 'p2-t2-8', text: 'Apply to BaptistCare / Baptcare / Baptist Care SA (merged)' },
+            { id: 'p2-t2-9', text: 'Apply to Anglicare facilities in target regions' },
+            { id: 'p2-t2-10', text: 'Apply to Catholic Healthcare' },
+            { id: 'p2-t2-11', text: 'Apply to Southern Cross Care' },
+            { id: 'p2-t2-12', text: 'Apply to Kaloma Home for the Aged (Goondiwindi QLD)', detail: 'Smaller — less competition' }
+          ]
+        },
+        {
+          title: 'NT DAMA III — Highest Volume Caregiver Sponsorship',
+          items: [
+            { id: 'p2-nt1', text: 'Register / submit interest with MigrationNT', detail: '1,500 nominations/year, 325 occupations' },
+            { id: 'p2-nt2', text: 'Apply to Australian Regional & Remote Community Services (ARRCS)' },
+            { id: 'p2-nt3', text: 'Apply to Juninga Centre (Darwin)' },
+            { id: 'p2-nt4', text: 'Apply to Frontier Services aged care (NT remote)' },
+            { id: 'p2-nt5', text: 'Apply to Tiwi Health Board / Aged Care' },
+            { id: 'p2-nt6', text: 'Search NT.gov.au careers portal weekly' }
+          ]
+        },
+        {
+          title: 'Recruitment Agencies (register with 2–3, never pay upfront fees)',
+          items: [
+            { id: 'p2-a1', text: 'Register with HealthcareLink' },
+            { id: 'p2-a2', text: 'Register with CC Staffing Solutions' },
+            { id: 'p2-a3', text: 'Register with Job4Online aged-care section' },
+            { id: 'p2-a4', text: 'Verify NO upfront fees demanded', detail: 'Legitimate Australian recruiters are paid by the employer' }
+          ]
+        },
+        {
+          title: 'Application Hygiene',
+          items: [
+            { id: 'p2-h1', text: 'Send 5 tailored applications per week (not 30 generic)' },
+            { id: 'p2-h2', text: 'Customise cover letter for each employer' },
+            { id: 'p2-h3', text: 'Follow up unanswered applications after 2 weeks' },
+            { id: 'p2-h4', text: 'Refresh Seek profile every 2 weeks (boosts visibility)' },
+            { id: 'p2-h5', text: 'Update Seek/LinkedIn with IELTS score immediately when received' },
+            { id: 'p2-h6', text: 'Send thank-you email within 24 hours of every interview' }
+          ]
+        },
+        {
+          title: 'Interview Readiness',
+          items: [
+            { id: 'p2-i1', text: 'Prepare answers to common aged-care interview questions' },
+            { id: 'p2-i2', text: 'Prepare 3–4 STAR examples from Qatar Foundation + current role' },
+            { id: 'p2-i3', text: 'Set up quiet, well-lit video interview space at home' },
+            { id: 'p2-i4', text: 'Test webcam, lighting, audio (phone or laptop)' },
+            { id: 'p2-i5', text: 'Prepare questions to ask employer (training, accommodation, settlement support)' },
+            { id: 'p2-i6', text: 'Research each employer values before their interview' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p3',
+      title: 'Phase 3 — Sponsorship Offer Received',
+      meta: 'After job offer in hand | All admin happens here',
+      sections: [
+        {
+          title: 'Skills Assessment — Community Work Australia',
+          items: [
+            { id: 'p3-s1', text: 'Apply to Community Work Australia for skills assessment', detail: 'communitywork.org.au — Aged or Disabled Carer ANZSCO 423111' },
+            { id: 'p3-s2', text: 'Submit qualification documents (BSN, IISMI, training certs)' },
+            { id: 'p3-s3', text: 'Submit work experience evidence (Qatar Foundation + current role)' },
+            { id: 'p3-s4', text: 'Pay assessment fee (~AUD $400–600)' },
+            { id: 'p3-s5', text: 'Receive positive skills assessment outcome' }
+          ]
+        },
+        {
+          title: 'Confirm Employer-Side Process',
+          items: [
+            { id: 'p3-e1', text: 'Confirm employer has signed MOU with relevant union (UWU / ANMF / HSU)' },
+            { id: 'p3-e2', text: 'Confirm employer has approved Industry Labour Agreement' },
+            { id: 'p3-e3', text: 'Receive formal job offer letter (in writing)' },
+            { id: 'p3-e4', text: 'Receive nomination letter from employer' },
+            { id: 'p3-e5', text: 'Confirm salary meets ACILA threshold', detail: 'Min AUD $51,222 with concession; $76,515 standard' },
+            { id: 'p3-e6', text: 'Clarify what employer covers (visa fees, flights, initial accommodation)' }
+          ]
+        },
+        {
+          title: 'Subclass 482 Visa Application',
+          items: [
+            { id: 'p3-v1', text: 'Open ImmiAccount on Department of Home Affairs website' },
+            { id: 'p3-v2', text: 'Complete visa application form' },
+            { id: 'p3-v3', text: 'Upload all supporting documents' },
+            { id: 'p3-v4', text: 'Pay visa fee (~AUD $3,210 primary applicant + dependents)', detail: 'Often paid by sponsoring employer — confirm in offer' },
+            { id: 'p3-v5', text: 'Health examination at approved Bupa Medical Visa Services clinic' },
+            { id: 'p3-v6', text: 'Submit current NBI clearance + Qatar police clearance' },
+            { id: 'p3-v7', text: 'Upload IELTS results' },
+            { id: 'p3-v8', text: 'Upload skills assessment outcome' },
+            { id: 'p3-v9', text: 'Submit and await decision' }
+          ]
+        },
+        {
+          title: 'Pre-Departure (after visa granted)',
+          items: [
+            { id: 'p3-d1', text: 'Visa grant notification received — celebrate!' },
+            { id: 'p3-d2', text: 'Book flights to Australia' },
+            { id: 'p3-d3', text: 'Process OEC (Overseas Employment Certificate) from DMW' },
+            { id: 'p3-d4', text: 'Attend Pre-Departure Orientation Seminar (PDOS)' },
+            { id: 'p3-d5', text: 'Travel insurance for first month' },
+            { id: 'p3-d6', text: 'Confirm initial accommodation arranged' },
+            { id: 'p3-d7', text: 'Withdraw AUD currency for first 2 weeks' },
+            { id: 'p3-d8', text: 'Submit resignation to Camarines Norte Provincial Hospital' },
+            { id: 'p3-d9', text: 'Family arrangements (children, parents, finances)' },
+            { id: 'p3-d10', text: 'Backup all important documents to cloud + USB' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p4',
+      title: 'Phase 4 — First 2 Years in Australia',
+      meta: '482 visa active | Building toward PR eligibility',
+      sections: [
+        {
+          title: 'Settlement (first 4 weeks)',
+          items: [
+            { id: 'p4-s1', text: 'Arrive in Australia' },
+            { id: 'p4-s2', text: 'Apply for Tax File Number (TFN) — ato.gov.au' },
+            { id: 'p4-s3', text: 'Open Australian bank account (CommBank, ANZ, NAB, or Westpac)' },
+            { id: 'p4-s4', text: 'Set up Medicare or arrange private health insurance' },
+            { id: 'p4-s5', text: 'Get Australian SIM card' },
+            { id: 'p4-s6', text: 'Apply for Australian driver licence (or recognise PH licence)' },
+            { id: 'p4-s7', text: 'Find permanent accommodation' },
+            { id: 'p4-s8', text: 'Register with local GP' },
+            { id: 'p4-s9', text: 'Begin work with sponsoring employer' }
+          ]
+        },
+        {
+          title: 'Maintain Sponsorship Compliance (critical for PR)',
+          items: [
+            { id: 'p4-c1', text: 'Stay in nominated occupation (Personal Care Assistant / Aged or Disabled Carer)' },
+            { id: 'p4-c2', text: 'Stay with sponsoring employer for full 2 years' },
+            { id: 'p4-c3', text: 'Work full-time hours (30+ hours/week)' },
+            { id: 'p4-c4', text: 'No unauthorised work outside agreement' },
+            { id: 'p4-c5', text: 'Notify employer of any address changes' },
+            { id: 'p4-c6', text: 'Keep passport and visa documents current' }
+          ]
+        },
+        {
+          title: 'PR Preparation (during years 1–2)',
+          items: [
+            { id: 'p4-p1', text: 'Save every payslip + group certificate (PAYG summary)' },
+            { id: 'p4-p2', text: 'Track annual leave usage (avoid excessive absence)' },
+            { id: 'p4-p3', text: 'Build documented record of strong performance reviews' },
+            { id: 'p4-p4', text: 'Continue training / professional development at facility' },
+            { id: 'p4-p5', text: 'Build positive references from supervisors' },
+            { id: 'p4-p6', text: 'Maintain or upgrade English skills (consider higher IELTS for PR)' },
+            { id: 'p4-p7', text: 'Begin family sponsorship process if family not yet with her' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'p5',
+      title: 'Phase 5 — Permanent Residency',
+      meta: 'Year 2+ | The finish line',
+      sections: [
+        {
+          title: 'ENS Subclass 186 Visa Application',
+          items: [
+            { id: 'p5-v1', text: 'Confirm 2 years continuous full-time work with sponsor' },
+            { id: 'p5-v2', text: 'Confirm employer willing to nominate for 186' },
+            { id: 'p5-v3', text: 'Receive 186 nomination from employer' },
+            { id: 'p5-v4', text: 'Renew skills assessment if expired' },
+            { id: 'p5-v5', text: 'Renew health examinations' },
+            { id: 'p5-v6', text: 'Renew NBI + Qatar police clearances' },
+            { id: 'p5-v7', text: 'Pay visa fee (~AUD $4,640 primary applicant)' },
+            { id: 'p5-v8', text: 'Submit 186 application via ImmiAccount' },
+            { id: 'p5-v9', text: 'Await PR grant' }
+          ]
+        },
+        {
+          title: 'Post-PR (after grant)',
+          items: [
+            { id: 'p5-pr1', text: 'PR visa granted — Permanent Resident of Australia 🎉' },
+            { id: 'p5-pr2', text: 'Update Medicare to full coverage' },
+            { id: 'p5-pr3', text: 'Sponsor remaining family members if not already with her' },
+            { id: 'p5-pr4', text: 'Track Australian residency days for citizenship' },
+            { id: 'p5-pr5', text: 'Apply for Australian citizenship after 4 years residency (incl. 1 year as PR)' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'pb',
+      title: 'Budget Planning',
+      meta: 'Estimated personal costs | Pre-arrival to PR',
+      sections: [
+        {
+          title: 'Pre-Application Costs (Phase 1)',
+          items: [
+            { id: 'pb-1', text: 'IELTS test fee — ~AUD $400 (PHP 13,000)' },
+            { id: 'pb-2', text: 'IELTS prep books / online courses — ~AUD $200–500' },
+            { id: 'pb-3', text: 'Document authentication / notarisation — ~AUD $200' },
+            { id: 'pb-4', text: 'NBI Clearance + apostille — ~AUD $50' },
+            { id: 'pb-5', text: 'Qatar police clearance via embassy — ~AUD $80' },
+            { id: 'pb-6', text: 'Updated passport photos — ~AUD $20' }
+          ]
+        },
+        {
+          title: 'Application & Visa Costs (Phase 3)',
+          items: [
+            { id: 'pb-7', text: 'Skills assessment (Community Work Australia) — ~AUD $400–600' },
+            { id: 'pb-8', text: 'Visa subclass 482 fee — ~AUD $3,210', detail: 'Often paid by employer under ACILA — confirm in offer' },
+            { id: 'pb-9', text: 'Health examinations — ~AUD $400' },
+            { id: 'pb-10', text: 'Migration agent (optional) — ~AUD $2,000–5,000' }
+          ]
+        },
+        {
+          title: 'Relocation Costs (Phase 3 → 4)',
+          items: [
+            { id: 'pb-11', text: 'One-way flight Manila to Australia — ~AUD $800–1,200' },
+            { id: 'pb-12', text: 'First month accommodation buffer — ~AUD $2,000' },
+            { id: 'pb-13', text: 'Living costs first month (food, transport, SIM) — ~AUD $2,500' },
+            { id: 'pb-14', text: 'Initial Australian wardrobe (uniforms, cool-weather clothing if VIC/SA) — ~AUD $300' }
+          ]
+        },
+        {
+          title: 'PR Stage (Phase 5, Year 2+)',
+          items: [
+            { id: 'pb-15', text: 'Visa subclass 186 fee — ~AUD $4,640' },
+            { id: 'pb-16', text: 'Renewed health + police checks — ~AUD $500' }
+          ]
+        }
+      ]
+    }
+  ];
+
+  var state = {};
+
+  function loadState() {
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) state = JSON.parse(saved);
+    } catch (e) { state = {}; }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { console.warn('Save failed', e); }
+  }
+
+  function getItemState(id) {
+    return state[id] || { done: false, note: '' };
+  }
+
+  function setItemState(id, patch) {
+    var cur = getItemState(id);
+    state[id] = { done: cur.done, note: cur.note };
+    if (patch.done !== undefined) state[id].done = patch.done;
+    if (patch.note !== undefined) state[id].note = patch.note;
+    saveState();
+    updateProgress();
+  }
+
+  function countItems() {
+    var total = 0, done = 0;
+    for (var i = 0; i < data.length; i++) {
+      for (var j = 0; j < data[i].sections.length; j++) {
+        var items = data[i].sections[j].items;
+        for (var k = 0; k < items.length; k++) {
+          total++;
+          if (getItemState(items[k].id).done) done++;
+        }
+      }
+    }
+    return { total: total, done: done };
+  }
+
+  function countPhase(phase) {
+    var total = 0, done = 0;
+    for (var j = 0; j < phase.sections.length; j++) {
+      var items = phase.sections[j].items;
+      for (var k = 0; k < items.length; k++) {
+        total++;
+        if (getItemState(items[k].id).done) done++;
+      }
+    }
+    return { total: total, done: done };
+  }
+
+  function updateProgress() {
+    var c = countItems();
+    var pct = c.total === 0 ? 0 : Math.round((c.done / c.total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = c.done + ' of ' + c.total + ' complete';
+    document.getElementById('progressPct').textContent = pct + '%';
+
+    // Update phase stats
+    for (var i = 0; i < data.length; i++) {
+      var phase = data[i];
+      var pc = countPhase(phase);
+      var statEl = document.getElementById('stat-' + phase.id);
+      var phaseEl = document.getElementById('phase-' + phase.id);
+      if (statEl) statEl.textContent = pc.done + '/' + pc.total;
+      if (phaseEl) {
+        if (pc.done === pc.total && pc.total > 0) phaseEl.classList.add('complete');
+        else phaseEl.classList.remove('complete');
+      }
+    }
+  }
+
+  function toggleItem(id) {
+    var cur = getItemState(id);
+    setItemState(id, { done: !cur.done });
+    var el = document.getElementById('item-' + id);
+    var cb = document.getElementById('cb-' + id);
+    if (cur.done) {
+      el.classList.remove('done');
+      cb.classList.remove('checked');
+    } else {
+      el.classList.add('done');
+      cb.classList.add('checked');
+    }
+  }
+
+  function toggleNote(id) {
+    var el = document.getElementById('item-' + id);
+    el.classList.toggle('has-note');
+    if (el.classList.contains('has-note')) {
+      var ta = document.getElementById('note-' + id);
+      if (ta) ta.focus();
+    }
+  }
+
+  function updateNote(id, value) {
+    setItemState(id, { note: value });
+  }
+
+  function togglePhase(id) {
+    var el = document.getElementById('phase-' + id);
+    el.classList.toggle('expanded');
+  }
+
+  function expandAll() {
+    var els = document.querySelectorAll('.phase');
+    var anyCollapsed = false;
+    for (var i = 0; i < els.length; i++) {
+      if (!els[i].classList.contains('expanded')) { anyCollapsed = true; break; }
+    }
+    for (var i = 0; i < els.length; i++) {
+      if (anyCollapsed) els[i].classList.add('expanded');
+      else els[i].classList.remove('expanded');
+    }
+  }
+
+  function resetAll() {
+    if (confirm('Reset all progress? This will uncheck every item and clear all notes. This cannot be undone.')) {
+      state = {};
+      saveState();
+      render();
+    }
+  }
+
+  function exportData() {
+    var lines = ['DAMA / ACILA PR Pathway Checklist — Export'];
+    lines.push('Date: ' + new Date().toLocaleDateString());
+    var c = countItems();
+    lines.push('Progress: ' + c.done + ' of ' + c.total + ' (' + Math.round(c.done/c.total*100) + '%)');
+    lines.push('');
+    for (var i = 0; i < data.length; i++) {
+      var phase = data[i];
+      lines.push('=== ' + phase.title + ' ===');
+      for (var j = 0; j < phase.sections.length; j++) {
+        var sec = phase.sections[j];
+        lines.push('');
+        lines.push('-- ' + sec.title + ' --');
+        for (var k = 0; k < sec.items.length; k++) {
+          var item = sec.items[k];
+          var s = getItemState(item.id);
+          lines.push((s.done ? '[x] ' : '[ ] ') + item.text);
+          if (s.note) lines.push('     Note: ' + s.note);
+        }
+      }
+      lines.push('');
+    }
+    var blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'dama-pr-checklist-' + new Date().toISOString().slice(0,10) + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function render() {
+    var root = document.getElementById('checklist');
+    var html = '';
+    for (var i = 0; i < data.length; i++) {
+      var phase = data[i];
+      html += '<div class="phase' + (i === 0 ? ' expanded' : '') + '" id="phase-' + phase.id + '">';
+      html += '<div class="phase-header" onclick="togglePhase(\'' + phase.id + '\')">';
+      html += '<div style="flex:1">';
+      html += '<div class="phase-title">' + phase.title + '</div>';
+      html += '<div class="phase-meta">' + phase.meta + '</div>';
+      html += '</div>';
+      html += '<span class="phase-stats" id="stat-' + phase.id + '">0/0</span>';
+      html += '<span class="chevron">&#9656;</span>';
+      html += '</div>';
+      html += '<div class="phase-body">';
+      for (var j = 0; j < phase.sections.length; j++) {
+        var sec = phase.sections[j];
+        html += '<div class="section">';
+        html += '<div class="section-title">' + sec.title + '</div>';
+        for (var k = 0; k < sec.items.length; k++) {
+          var item = sec.items[k];
+          var s = getItemState(item.id);
+          var hasNoteClass = s.note ? ' has-note' : '';
+          var doneClass = s.done ? ' done' : '';
+          var checkedClass = s.done ? ' checked' : '';
+          html += '<div class="item' + doneClass + hasNoteClass + '" id="item-' + item.id + '">';
+          html += '<div class="checkbox' + checkedClass + '" id="cb-' + item.id + '" onclick="toggleItem(\'' + item.id + '\')"></div>';
+          html += '<div class="item-content">';
+          html += '<div class="item-text" onclick="toggleItem(\'' + item.id + '\')">' + item.text + '</div>';
+          if (item.detail) html += '<div class="item-detail">' + item.detail + '</div>';
+          html += '<button class="note-toggle" onclick="toggleNote(\'' + item.id + '\')">' + (s.note ? 'Edit note' : '+ Add note') + '</button>';
+          html += '<textarea class="item-note" id="note-' + item.id + '" placeholder="Add details, dates, contacts..." onblur="updateNote(\'' + item.id + '\', this.value)">' + (s.note || '') + '</textarea>';
+          html += '</div></div>';
+        }
+        html += '</div>';
+      }
+      html += '</div></div>';
+    }
+    root.innerHTML = html;
+    updateProgress();
+  }
+
+  loadState();
+  render();
+</script>
+</body>
+</html>
